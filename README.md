@@ -20,42 +20,67 @@ account.
 2. Build a basic lightning component that can query a list of 10 most recently created accounts and display it using a
 lightning app. 
 
-<aura:component controller="accountsWithContactsClass" implements="flexipage:availableForAllPageTypes" access="global">
-<aura:handler name="init" value="{!this}" action="{!c.myAction}"/>
-<aura:attribute name="accounts" type="Account[]" />
-<table>
-<tr>
-<td>
-<b>Name</b>
-</td>
-<td>
-<b>Industry</b>
-</td>
-<td>
-<b>Contacts</b>
-</td>
-</tr>
-<aura:iteration items="{!v.accounts}" var="accs1" >
-<tr>  
-<td> {!accs1.Name}  </td>
-<td> {!accs1.Industry}  </td>
-<!--   <td>   {!accs1.Contacts.lastName}  </td> -->
-<table>
-<aura:iteration items="{!accs1.Contacts}" var="con1" >
-<tr>
-<td>{!con1.LastName}</td>
-</tr>
-</aura:iteration>
-</table>
-</tr> 
-</aura:iteration>                                           
-</table>    
-</aura:component>
+1. **Create Lightning Component:**
 
+Create a new Lightning Component named "RecentAccountsList":
 
-
-
-
+`RecentAccountsList.cmp`:
+```html
+<aura:component controller="RecentAccountsController">
+    <aura:attribute name="recentAccounts" type="Account[]" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <h2>Recently Created Accounts</
+        
+        <ul>
+            <aura:iteration items="{!v.recentAccounts}" var="account">
+                <li>{!account.Name}</li>
+            </aura:iteration>
+        </ul>
+    </aura:component>
+    . **Create Apex Controller:**
+    
+    Create a new Apex Controller named "RecentAccountsController":
+    
+    `RecentAccountsController.apxc`:
+    ```apex
+    public class RecentAccountsController {
+    @AuraEnabled
+    public static List<Account> getRecentAccounts() {
+    return [SELECT Id, Name FROM Account ORDER BY CreatedDate DESC LIMIT 10];
+    }
+    }
+    
+    . **Create Lightning Component Controller:**
+    
+    `RecentAccountsListController.js`:
+    ```javascript
+    ({
+    doInit: function(component, event, helper) {
+    var action = component.get("c.getRecentAccounts");
+    action.setCallback(this, function(response) {
+    var state = response.getState();
+    if (state === "SUCCESS") {
+    component.set("v.recentAccounts", response.getReturnValue());
+    }
+    });
+    $A.enqueueAction(action);
+    }
+    })
+    ```
+    **Create Lightning App:**
+    
+    Create a new Lightning App named "RecentAccountsApp":
+    
+    `RecentAccountsApp.app`:
+    ```html
+    <aura:application >
+        <c:RecentAccountsList />
+    </aura:application>
+    ```
+    **Add Lightning Component to Lightning Page:**
+    
+    Add the "RecentAccountsList" component to a Lightning Page using the Lightning App Builde
 
 
 
